@@ -1,0 +1,62 @@
+<html>
+<head>
+<script src="//cdn.bootcss.com/jquery/3.0.0-alpha1/jquery.js"></script>
+</head>
+
+<body>
+
+<div>
+    <input id="toUser" type="text" style="width:300px"></input>
+    <button>chat to</button>
+</div>
+<div id="content" style="width:400px; height:400px; border:solid 1px">
+    
+</div>
+<div>
+    <input id="txt" type="text" style="width:300px"></input>
+    <button id="send">send</button>
+</div>
+<script>
+
+
+</script>
+
+
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socketOpt = {
+    transports: ['websocket']
+    };
+  var socket = io('http://192.168.1.104:3000', socketOpt);
+  
+  socket.on('connect_error', function(err) {
+  console.log(err.toString());
+  });
+  
+  socket.on('login', function(data) {
+    var uid = prompt('uid');
+    socket.emit('login', {token:'1234567', uid:uid});
+  });
+  
+  socket.on('message', function (data) {
+    console.log(data);
+    var txt = "<div><span>"+ data.uid +":</span><span>"+data.content+"</span></div>"
+    $("#content").append(txt);
+  });
+  
+  socket.on('error', function(data) {
+    console.log(data);
+    });
+    
+    $("#send").on('click', function() {
+        var toUser = $('#toUser')[0].value;
+        var txt = $("#txt")[0].value;
+        console.log('send:'+toUser+"->"+txt);
+        socket.emit('message',{uid:toUser, content:txt});
+    });
+</script>
+
+</body>
+
+</html>
