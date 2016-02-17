@@ -6,7 +6,7 @@ var connection = require('../MySql').connection;
 
 module.exports = {
     findByTokenAndUid : function(token, uid, callback) {
-        connection.query("SELECT * FROM token WHERE token=? AND id=?", [token, uid], function(error, rows) {
+        connection.query("SELECT * FROM token WHERE token=:token AND user=:user", {token:token, user:uid}, function(error, rows) {
             if (!error) {
                 if (rows && rows.length > 0) {
                     callback(null, rows[0])

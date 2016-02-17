@@ -17,7 +17,15 @@ MySql.prototype.connect = function(options) {
     //}
     this.connection = this.mysql.createConnection(options);
     this.connection.connect();
+    this.connection.config.queryFormat = function (query, values) {
+        if (!values) return query;
+        return query.replace(/\:(\w+)/g, function (txt, key) {
+            if (values.hasOwnProperty(key)) {
+                return this.escape(values[key]);
+            }
+            return txt;
+        }.bind(this));
+    };
 };
-
 
 module.exports = new MySql();
