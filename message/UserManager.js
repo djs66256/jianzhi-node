@@ -38,20 +38,20 @@ UserManager.prototype.findBySockid = function (sockid) {
 UserManager.prototype.findByUid = function (uid) {
 	var list = [];
 	for (var key in this.dict) {
-		if (this.dict[key].uid === uid) {
+		if (this.dict[key].uid == uid) {
 			list.push(this.dict[key]);
 		}
 	}
 	return list;
 };
 
-UserManager.prototype.sendToUsers = function(user, uid, content, callback) {
-	var list = this.findByUid(uid);
-	for (var i=0; i<list.length; i++) {
-		var sockid = list[i].sockid;
-		var data = {uid: user.uid, content: content};
-		this.io.sockets.connected[sockid].emit('message', data);
-	}
-};
+//UserManager.prototype.sendToUsers = function(uid, message, callback) {
+//	var list = this.findByUid(uid);
+//	for (var i=0; i<list.length; i++) {
+//		var sockid = list[i].sockid;
+//		var data = {uid: user.uid, content: content};
+//		this.io.sockets.connected[sockid].emit('message', data);
+//	}
+//};
 
 module.exports = new UserManager();

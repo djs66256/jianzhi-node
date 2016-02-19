@@ -21,7 +21,7 @@ module.exports = function(io) {
                     UserManager.login(token.token, token.uid, sock.id, function() {
                         console.log("Login: "+token.uid);
                     });
-					sock.emit("login")
+					sock.emit("login");
 
                     messageService.findUndownloadedByFromUser(token.uid, function(error, rows) {
                         rows.every(function(row) {
@@ -66,7 +66,12 @@ module.exports = function(io) {
                 msg.uuid = data.uuid;
 
                 messageService.insertMessage(msg, function() {
-                    sock.emit("messageAck", data.uuid)
+                    sock.emit("messageAck", data.uuid);
+                    var toUsers = UserManager.findByUid(data.uid);
+                    toUsers.forEach(function(user){
+                        data.time = msg.time;
+                        io.sockets.connected[user.sockid].emit('message', data);
+                    })
                 });
 				//UserManager.sendToUsers(user, data.uid, data.content, function() {
 				//
@@ -79,6 +84,12 @@ module.exports = function(io) {
 
         sock.on('messageAck', function(data) {
             // TODO: mark downloaded
+            if (data instanceof Array) {
+
+            }
+            else if (typeof(data) == "string") {
+
+            }
 
         });
 
