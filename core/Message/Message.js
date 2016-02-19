@@ -1,7 +1,7 @@
 
 module.exports = function() {
-    this.fromUser = null;
-    this.toUser = null;
+    this.from_user = null;
+    this.to_user = null;
     this.type = null;
     this.time = new Date();
     this.text = null;

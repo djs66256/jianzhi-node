@@ -25,9 +25,10 @@ module.exports = function(io) {
 
                     messageService.findUndownloadedByFromUser(token.uid, function(error, rows) {
                         rows.every(function(row) {
-                            row.uid = row.fromUser;
-                            delete row["toUser"];
-                            delete row["fromUser"];
+                            row.time = row.time.getTime()
+                            row.uid = row.from_user;
+                            delete row["to_user"];
+                            delete row["from_user"];
                         });
                         sock.emit("message", rows)
                     })
@@ -59,8 +60,8 @@ module.exports = function(io) {
 			
 			if (data.uid) {
                 var msg = new Message();
-                msg.fromUser = user.uid;
-                msg.toUser = data.uid;
+                msg.from_user = user.uid;
+                msg.to_user = data.uid;
                 msg.type = data.type;
                 msg.text = data.text;
                 msg.uuid = data.uuid;
@@ -69,7 +70,8 @@ module.exports = function(io) {
                     sock.emit("messageAck", data.uuid);
                     var toUsers = UserManager.findByUid(data.uid);
                     toUsers.forEach(function(user){
-                        data.time = msg.time;
+                        data.time = msg.time.getTime();
+                        data.uid = user.uid;
                         io.sockets.connected[user.sockid].emit('message', data);
                     })
                 });
@@ -117,5 +119,11 @@ function tokenFromString(str) {
 		}
 		return true
 	});
-	return token;
+    if (token.uid && token.token) {
+        if (typeof token.uid == "string") {
+            token.uid = parseInt(token.uid);
+        }
+        return token;
+    }
+    return null;
 }

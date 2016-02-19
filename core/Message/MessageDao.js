@@ -14,8 +14,8 @@ module.exports = {
         var sql = "INSERT INTO message (from_user, to_user, type, uuid, time, text)" +
             "VALUES (:from_user, :to_user, :type, :uuid, :time, :text)"
         var params = {
-            from_user: message.fromUser,
-            to_user: message.toUser,
+            from_user: message.from_user,
+            to_user: message.to_user,
             type: message.type,
             time: message.time,
             text: message.text,
@@ -36,10 +36,10 @@ module.exports = {
 
     findUndownloadedByFromUser : function(uid, callback) {
         var sql = "SELECT * FROM message" +
-            " WHERE to_user=:toUser" +
+            " WHERE to_user=:to_user" +
             " AND downloaded=false" +
             " ORDER BY time DESC";
-        connection.query(sql, {toUser: uid}, function(error, rows) {
+        connection.query(sql, {to_user: uid}, function(error, rows) {
             callback(error, rows)
         })
     }
