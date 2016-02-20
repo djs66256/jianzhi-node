@@ -24,13 +24,18 @@ module.exports = function(io) {
 					sock.emit("login");
 
                     messageService.findUndownloadedByFromUser(token.uid, function(error, rows) {
-                        rows.every(function(row) {
-                            row.time = row.time.getTime()
-                            row.uid = row.from_user;
-                            delete row["to_user"];
-                            delete row["from_user"];
+                        var data = [];
+                        rows.forEach(function(row) {
+                            var message = {
+                                time: row.time.getTime(),
+                                uid: row.from_user,
+                                uuid: row.uuid,
+                                type: row.type,
+                                text: row.text
+                            };
+                            data.push(message)
                         });
-                        sock.emit("message", rows)
+                        sock.emit("message", data)
                     })
 				}
 				else {
