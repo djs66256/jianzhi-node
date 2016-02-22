@@ -8,5 +8,9 @@ module.exports = {
 
     findUndownloadedByFromUser : function(uid, callback) {
         dao.findUndownloadedByFromUser(uid, callback)
+    },
+
+    setDownloadedByUuid: function(uuid, callback) {
+        dao.setDownloadedByUuid(uuid, callback);
     }
 };

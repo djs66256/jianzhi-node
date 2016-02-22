@@ -42,5 +42,13 @@ module.exports = {
         connection.query(sql, {to_user: uid}, function(error, rows) {
             callback(error, rows)
         })
+    },
+
+    setDownloadedByUuid: function(uuid, callback) {
+        var sql = "UPDATE message SET downloaded=:downloaded WHERE uuid=:uuid"
+        var params = {downloaded: true, uuid: uuid}
+        connection.query(sql, params, function(error, rows) {
+            callback();
+        });
     }
 };

@@ -6,6 +6,14 @@
 <body>
 
 <div>
+<form action="http://localhost:8080/json/login" method="post">
+<input type="text" name="username" />
+<input type="text" name="password" />
+<input type="submit" />
+</form>
+</div>
+
+<div>
     <input id="toUser" type="text" style="width:300px"></input>
     <button>chat to</button>
 </div>
@@ -28,16 +36,13 @@
   var socketOpt = {
     transports: ['websocket']
     };
-  var socket = io('http://192.168.1.104:3000', socketOpt);
+  var socket = io('http://localhost:3000', socketOpt);
   
   socket.on('connect_error', function(err) {
   console.log(err.toString());
   });
   
-  socket.on('login', function(data) {
-    var uid = prompt('uid');
-    socket.emit('login', {token:'1234567', uid:uid});
-  });
+
   
   socket.on('message', function (data) {
     console.log(data);
@@ -53,7 +58,7 @@
         var toUser = $('#toUser')[0].value;
         var txt = $("#txt")[0].value;
         console.log('send:'+toUser+"->"+txt);
-        socket.emit('message',{uid:toUser, content:txt});
+        socket.emit('message',{uid:parseInt(toUser), text:txt, type:1, uuid:new Date().getTime().toString()});
     });
 </script>
 

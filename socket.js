@@ -35,7 +35,9 @@ module.exports = function(io) {
                             };
                             data.push(message)
                         });
-                        sock.emit("message", data)
+                        if (data.length > 0) {
+                            sock.emit("message", data)
+                        }
                     })
 				}
 				else {
@@ -74,10 +76,15 @@ module.exports = function(io) {
                 messageService.insertMessage(msg, function() {
                     sock.emit("messageAck", data.uuid);
                     var toUsers = UserManager.findByUid(data.uid);
-                    toUsers.forEach(function(user){
-                        data.time = msg.time.getTime();
-                        data.uid = user.uid;
-                        io.sockets.connected[user.sockid].emit('message', data);
+                    toUsers.forEach(function(toUser){
+                        var sendMsg = {};
+                        sendMsg.time = msg.time.getTime();
+                        sendMsg.uid = user.uid;
+                        sendMsg.text = msg.text;
+                        sendMsg.type = msg.type;
+                        sendMsg.uuid = msg.uuid;
+
+                        io.sockets.connected[toUser.sockid].emit('message', sendMsg);
                     })
                 });
 				//UserManager.sendToUsers(user, data.uid, data.content, function() {
@@ -92,10 +99,15 @@ module.exports = function(io) {
         sock.on('messageAck', function(data) {
             // TODO: mark downloaded
             if (data instanceof Array) {
-
+                data.forEach(function(uuid) {
+                    messageService.setDownloadedByUuid(uuid, function() {});
+                })
             }
             else if (typeof(data) == "string") {
-
+                if (data) {
+                    messageService.setDownloadedByUuid(data, function () {
+                    });
+                }
             }
 
         });
