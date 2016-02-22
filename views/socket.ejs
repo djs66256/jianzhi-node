@@ -46,8 +46,9 @@
   
   socket.on('message', function (data) {
     console.log(data);
-    var txt = "<div><span>"+ data.uid +":</span><span>"+data.content+"</span></div>"
+    var txt = "<div><span>"+ data.uid +":</span><span>"+data.text+"</span></div>"
     $("#content").append(txt);
+    socket.emit('messageAck', data.uuid)
   });
   
   socket.on('error', function(data) {
@@ -57,6 +58,8 @@
     $("#send").on('click', function() {
         var toUser = $('#toUser')[0].value;
         var txt = $("#txt")[0].value;
+        var htmlText = "<div><span>me:</span><span>"+txt+"</span></div>"
+        $("#content").append(htmlText);
         console.log('send:'+toUser+"->"+txt);
         socket.emit('message',{uid:parseInt(toUser), text:txt, type:1, uuid:new Date().getTime().toString()});
     });
