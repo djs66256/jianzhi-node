@@ -24,6 +24,7 @@
     <input id="txt" type="text" style="width:300px"></input>
     <button id="send">send</button>
 </div>
+<button id="sendJob">send job</button>
 <script>
 
 
@@ -42,7 +43,9 @@
   console.log(err.toString());
   });
   
-
+  socket.on('connect', function() {
+    console.log('socket connected!')
+  })
   
   socket.on('message', function (data) {
     console.log(data);
@@ -62,6 +65,18 @@
         $("#content").append(htmlText);
         console.log('send:'+toUser+"->"+txt);
         socket.emit('message',{uid:parseInt(toUser), text:txt, type:1, uuid:new Date().getTime().toString()});
+    });
+
+    $("#sendJob").on('click', function() {
+        var toUser = $('#toUser')[0].value;
+        var content = {
+            uuid:new Date().getTime().toString(),
+            jid:2,
+            text:"",
+            uid:parseInt(toUser),
+            type:2
+        }
+        socket.emit('message', content)
     });
 </script>
 

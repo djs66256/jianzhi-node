@@ -11,15 +11,17 @@ module.exports = {
     },
 
     insertMessage: function(message, cb) {
-        var sql = "INSERT INTO message (from_user, to_user, type, uuid, time, text)" +
-            "VALUES (:from_user, :to_user, :type, :uuid, :time, :text)"
+        var sql = "INSERT INTO message (from_user, to_user, type, uuid, time, text, job, name_card)" +
+            "VALUES (:from_user, :to_user, :type, :uuid, :time, :text, :job, :name_card)";
         var params = {
             from_user: message.from_user,
             to_user: message.to_user,
             type: message.type,
             time: message.time,
             text: message.text,
-            uuid: message.uuid
+            uuid: message.uuid,
+            job: message.job,
+            name_card: message.name_card
         };
         connection.query(sql, params, function(err) {
             cb(err)
