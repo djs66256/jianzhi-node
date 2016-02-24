@@ -7,6 +7,7 @@ var UserManager = require('./message/UserManager');
 var tokenService = require('./core/Token/TokenService');
 var messageService = require('./core/Message/MessageService');
 var jobService = require('./core/Job/JobService');
+var userService = require('./core/User/UserService');
 var Message = require('./core/Message/Message');
 
 module.exports = function(io) {
@@ -16,7 +17,7 @@ module.exports = function(io) {
 
 		var tokeString = sock.handshake.headers.cookie;
 		var token = tokenFromString(tokeString);
-		if (token.uid != null && token.token != null) {
+		if (token && token.uid != null && token.token != null) {
 			tokenService.validate(token.token, token.uid, function(success) {
 				if (success) {
                     UserManager.login(token.token, token.uid, sock.id, function() {
@@ -98,6 +99,50 @@ module.exports = function(io) {
                                         sendMsg.cid = msg.name_card;
                                         sendMsg.jid = msg.job;
                                         sendMsg.job = rows[0];
+
+                                        io.sockets.connected[toUser.sockid].emit('message', sendMsg);
+                                    })
+                                });
+                            }
+                        })
+                    }
+                    else {
+                        return sock.emit("messageError", data.uuid)
+                    }
+                }
+                else if (data.type == Message.MessageType.Person) {
+                    if (data.cid) {
+                        userService.findByUid(data.cid, function(error, rows) {
+                            if (error || rows.length == 0) {
+                                sock.emit("messageError", data.uuid)
+                            }
+                            else {
+                                var nameCardData = rows[0];
+                                var nameCard = {
+                                    id: nameCardData.id,
+                                    name: nameCardData.name,
+                                    nickName: nameCardData.nick_name,
+                                    headImage: nameCardData.head_image,
+                                    groupType: nameCardData.user_type,
+                                    gender: nameCardData.gender,
+                                    description: nameCardData.description
+                                };
+
+                                msg.name_card = data.cid;
+
+                                messageService.insertMessage(msg, function() {
+                                    sock.emit("messageAck", data.uuid);
+                                    var toUsers = UserManager.findByUid(data.uid);
+                                    toUsers.forEach(function(toUser){
+                                        var sendMsg = {};
+                                        sendMsg.time = msg.time.getTime();
+                                        sendMsg.uid = user.uid;
+                                        sendMsg.text = msg.text;
+                                        sendMsg.type = msg.type;
+                                        sendMsg.uuid = msg.uuid;
+                                        sendMsg.cid = msg.name_card;
+                                        sendMsg.jid = msg.job;
+                                        sendMsg.nameCard = nameCard;
 
                                         io.sockets.connected[toUser.sockid].emit('message', sendMsg);
                                     })

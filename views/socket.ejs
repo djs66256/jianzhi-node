@@ -25,6 +25,7 @@
     <button id="send">send</button>
 </div>
 <button id="sendJob">send job</button>
+<button id="sendNameCard">send name card</button>
 <script>
 
 
@@ -78,6 +79,18 @@
         }
         socket.emit('message', content)
     });
+
+    $("#sendNameCard").on('click', function() {
+            var toUser = $('#toUser')[0].value;
+            var content = {
+                uuid:new Date().getTime().toString(),
+                cid:2,
+                text:"",
+                uid:parseInt(toUser),
+                type:3
+            }
+            socket.emit('message', content)
+        });
 </script>
 
 </body>
