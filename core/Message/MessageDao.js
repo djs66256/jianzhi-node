@@ -20,9 +20,15 @@ module.exports = {
             time: message.time,
             text: message.text,
             uuid: message.uuid,
-            job: message.job,
-            name_card: message.name_card
+            job: null,
+            name_card: null
         };
+        if (message.job) {
+            params.job = message.job.id;
+        }
+        if (message.name_card) {
+            params.name_card = message.name_card.id;
+        }
         connection.query(sql, params, function(err) {
             cb(err)
         })

@@ -35,6 +35,28 @@ UserManager.prototype.findBySockid = function (sockid) {
 	return this.dict[sockid];
 };
 
+UserManager.prototype.findSocksByUser = function (users) {
+	var socks = [];
+	var connections = this.io.sockets.connected;
+	users.forEach(function (user) {
+		var sock = connections[user.sockid];
+		if (sock) {
+			socks.push(sock)
+		}
+	});
+	return socks;
+};
+
+UserManager.prototype.findSocksByUid = function (uid) {
+	var user = this.findByUid(uid);
+	if (user) {
+		return this.findSocksByUser(user);
+	}
+	else {
+		return null;
+	}
+};
+
 UserManager.prototype.findByUid = function (uid) {
 	var list = [];
 	for (var key in this.dict) {

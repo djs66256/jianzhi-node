@@ -69,39 +69,29 @@ module.exports = function(io) {
 			
 			if (data.uid) {
                 var msg = new Message();
-                msg.from_user = user.uid;
-                msg.to_user = data.uid;
-                msg.type = data.type;
-                msg.text = data.text;
-                msg.uuid = data.uuid;
-                msg.job = null;
-                msg.name_card = null;
+                msg.setFromUser(user.uid);
+                msg.setToUser(data.uid);
+                msg.setType(data.type);
+                msg.setText(data.text);
+                msg.setUuid(data.uuid);
 
-                if (data.type == Message.MessageType.Job) {
+                if (msg.type == Message.MessageType.Job) {
                     if (data.jid) {
                         jobService.findById(data.jid, function(error, rows) {
                             if (error || rows.length == 0) {
-                                sock.emit("messageError", data.uuid)
+                                sock.emit("messageError", msg.uuid)
                             }
                             else {
-                                msg.job = data.jid;
+                                //msg.job = data.jid;
+                                msg.setJob(rows[0]);
 
                                 messageService.insertMessage(msg, function() {
                                     sock.emit("messageAck", data.uuid);
-                                    var toUsers = UserManager.findByUid(data.uid);
-                                    toUsers.forEach(function(toUser){
-                                        var sendMsg = {};
-                                        sendMsg.time = msg.time.getTime();
-                                        sendMsg.uid = user.uid;
-                                        sendMsg.text = msg.text;
-                                        sendMsg.type = msg.type;
-                                        sendMsg.uuid = msg.uuid;
-                                        sendMsg.cid = msg.name_card;
-                                        sendMsg.jid = msg.job;
-                                        sendMsg.job = rows[0];
 
-                                        io.sockets.connected[toUser.sockid].emit('message', sendMsg);
-                                    })
+                                    var sendMessage = msg.getSendMessage();
+                                    UserManager.findSocksByUid(msg.to_user).forEach(function(sock) {
+                                        sock.emit('message', sendMessage);
+                                    });
                                 });
                             }
                         })
@@ -128,24 +118,16 @@ module.exports = function(io) {
                                     description: nameCardData.description
                                 };
 
-                                msg.name_card = data.cid;
+                                //msg.name_card = data.cid;
+                                msg.setNameCard(nameCard);
 
                                 messageService.insertMessage(msg, function() {
                                     sock.emit("messageAck", data.uuid);
-                                    var toUsers = UserManager.findByUid(data.uid);
-                                    toUsers.forEach(function(toUser){
-                                        var sendMsg = {};
-                                        sendMsg.time = msg.time.getTime();
-                                        sendMsg.uid = user.uid;
-                                        sendMsg.text = msg.text;
-                                        sendMsg.type = msg.type;
-                                        sendMsg.uuid = msg.uuid;
-                                        sendMsg.cid = msg.name_card;
-                                        sendMsg.jid = msg.job;
-                                        sendMsg.nameCard = nameCard;
 
-                                        io.sockets.connected[toUser.sockid].emit('message', sendMsg);
-                                    })
+                                    var sendMessage = msg.getSendMessage();
+                                    UserManager.findSocksByUid(msg.to_user).forEach(function(sock) {
+                                        sock.emit('message', sendMessage);
+                                    });
                                 });
                             }
                         })
@@ -157,27 +139,12 @@ module.exports = function(io) {
                 else {
                     messageService.insertMessage(msg, function() {
                         sock.emit("messageAck", data.uuid);
-                        var toUsers = UserManager.findByUid(data.uid);
-                        toUsers.forEach(function(toUser){
-                            var sendMsg = {};
-                            sendMsg.time = msg.time.getTime();
-                            sendMsg.uid = user.uid;
-                            sendMsg.text = msg.text;
-                            sendMsg.type = msg.type;
-                            sendMsg.uuid = msg.uuid;
-                            sendMsg.cid = msg.name_card;
-                            sendMsg.jid = msg.job;
-
-                            io.sockets.connected[toUser.sockid].emit('message', sendMsg);
-                        })
+                        var sendMessage = msg.getSendMessage();
+                        UserManager.findSocksByUid(msg.to_user).forEach(function (sock) {
+                            sock.emit('message', sendMessage);
+                        });
                     });
                 }
-
-
-
-				//UserManager.sendToUsers(user, data.uid, data.content, function() {
-				//
-				//});
 			}
             else {
                 sock.emit("messageError", data.uuid)

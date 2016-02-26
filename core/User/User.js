@@ -1,3 +1,12 @@
-/**
- * Created by daniel on 2016/1/29.
- */
+
+function User(rows) {
+    if (rows) {
+
+    }
+}
+
+User.prototype.getNameCard = function () {
+
+};
+
+module.exports = User;
