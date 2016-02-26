@@ -82,16 +82,11 @@ module.exports = function(io) {
                                 sock.emit("messageError", msg.uuid)
                             }
                             else {
-                                //msg.job = data.jid;
                                 msg.setJob(rows[0]);
 
                                 messageService.insertMessage(msg, function() {
                                     sock.emit("messageAck", data.uuid);
-
-                                    var sendMessage = msg.getSendMessage();
-                                    UserManager.findSocksByUid(msg.to_user).forEach(function(sock) {
-                                        sock.emit('message', sendMessage);
-                                    });
+                                    sendMessage(msg);
                                 });
                             }
                         })
@@ -102,32 +97,17 @@ module.exports = function(io) {
                 }
                 else if (data.type == Message.MessageType.Person) {
                     if (data.cid) {
-                        userService.findByUid(data.cid, function(error, rows) {
-                            if (error || rows.length == 0) {
+                        userService.findByUid(data.cid, function(error, user) {
+                            if (error) {
                                 sock.emit("messageError", data.uuid)
                             }
                             else {
-                                var nameCardData = rows[0];
-                                var nameCard = {
-                                    id: nameCardData.id,
-                                    name: nameCardData.name,
-                                    nickName: nameCardData.nick_name,
-                                    headImage: nameCardData.head_image,
-                                    groupType: nameCardData.user_type,
-                                    gender: nameCardData.gender,
-                                    description: nameCardData.description
-                                };
-
-                                //msg.name_card = data.cid;
+                                var nameCard = user.getNameCard();
                                 msg.setNameCard(nameCard);
 
                                 messageService.insertMessage(msg, function() {
                                     sock.emit("messageAck", data.uuid);
-
-                                    var sendMessage = msg.getSendMessage();
-                                    UserManager.findSocksByUid(msg.to_user).forEach(function(sock) {
-                                        sock.emit('message', sendMessage);
-                                    });
+                                    sendMessage(msg);
                                 });
                             }
                         })
@@ -139,10 +119,7 @@ module.exports = function(io) {
                 else {
                     messageService.insertMessage(msg, function() {
                         sock.emit("messageAck", data.uuid);
-                        var sendMessage = msg.getSendMessage();
-                        UserManager.findSocksByUid(msg.to_user).forEach(function (sock) {
-                            sock.emit('message', sendMessage);
-                        });
+                        sendMessage(msg);
                     });
                 }
 			}
@@ -198,4 +175,11 @@ function tokenFromString(str) {
         return token;
     }
     return null;
+}
+
+function sendMessage(message) {
+    var sendMessage = message.getSendMessage();
+    UserManager.findSocksByUid(message.to_user).forEach(function (sock) {
+        sock.emit('message', sendMessage);
+    });
 }
