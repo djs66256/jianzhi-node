@@ -2,7 +2,8 @@
  * Created by daniel on 16/2/23.
  */
 
-var connection = require('../MySql').connection;
+var mysql = require('../MySql');
+//var connection = require('../MySql').connection;
 
 module.exports = {
 
@@ -11,7 +12,7 @@ module.exports = {
         var params = {
             id:id
         };
-        connection.query(sql, params, function(err, rows) {
+        mysql.connection.query(sql, params, function(err, rows) {
             cb(err, rows)
         })
     }

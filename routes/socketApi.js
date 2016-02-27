@@ -4,25 +4,41 @@
 var express = require('express');
 var router = express.Router();
 var UserManager = require('../message/UserManager');
+var MessageManager = require('../message/MessageManager');
 var Message = require('../core/Message/Message');
 
-router.get("/post/job", function(req, res, next) {
-    var from = parseInt(req.query.from);
-    var to = parseInt(req.query.to);
-    var jid = parseInt(req.query.jid);
-    var text = req.query.text;
+router.post("/post/job", function(req, res, next) {
+    var from = parseInt(req.param('from'));
+    var to = parseInt(req.param('to'));
+    var jid = parseInt(req.param('jid'));
+    var text = req.param('text');
+    var uuid = req.param('uuid');
 
-    var message = new Message();
-    message.setType(Message.MessageType.Job);
-    message.setFromUser(from);
-    message.setToUser(to);
+    if (from && to && jid && uuid) {
 
-
-    UserManager.findSocksByUid(to).forEach(function (sock) {
-        sock.emit('message')
-    });
-
-    console.log(req)
+        var msg = {
+            from_user: from,
+            to_user: to,
+            type: Message.MessageType.Job,
+            text: text,
+            uuid: uuid,
+            jid: jid
+        };
+        MessageManager.parse(msg, function (err, message) {
+            if (err) {
+                res.send({retCode: 0, content: err});
+                return;
+            }
+            var sendMessage = message.getSendMessage();
+            UserManager.findSocksByUid(to).forEach(function (sock) {
+                sock.emit('message', sendMessage);
+            });
+            res.send({retCode: 1, content: uuid});
+        });
+    }
+    else {
+        res.send({retCode: 0, content: '数据格式错误'});
+    }
 });
 
 module.exports = router;

@@ -2,11 +2,12 @@
  * Created by daniel on 2016/1/29.
  */
 
-var connection = require('../MySql').connection;
+var mysql = require('../MySql');
+//var connection = require('../MySql').connection;
 
 module.exports = {
     findByTokenAndUid : function(token, uid, callback) {
-        connection.query("SELECT * FROM token WHERE token=:token AND user=:user", {token:token, user:uid}, function(error, rows) {
+        mysql.connection.query("SELECT * FROM token WHERE token=:token AND user=:user", {token:token, user:uid}, function(error, rows) {
             if (!error) {
                 if (rows && rows.length > 0) {
                     callback(null, rows[0])

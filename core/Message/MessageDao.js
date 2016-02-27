@@ -1,8 +1,7 @@
 /**
  * Created by daniel on 2016/1/29.
  */
-
-var connection = require('../MySql').connection;
+var mysql = require('../MySql');
 
 module.exports = {
     initTable: function() {
@@ -29,13 +28,13 @@ module.exports = {
         if (message.name_card) {
             params.name_card = message.name_card.id;
         }
-        connection.query(sql, params, cb)
+        mysql.connection.query(sql, params, cb)
     },
 
     findByFromUserAndToUserAndUuid: function(fromUser, toUser, uuid, cb) {
         var sql = "SELECT * FROM message WHERE from_user=:fromUser";
         var params = {fromUser:fromUser};
-        connection.query(sql, params, function(err, rows) {
+        mysql.connection.query(sql, params, function(err, rows) {
             console.log(rows);
         });
     },
@@ -45,7 +44,7 @@ module.exports = {
             " WHERE to_user=:to_user" +
             " AND downloaded=false" +
             " ORDER BY time DESC";
-        connection.query(sql, {to_user: uid}, function(error, rows) {
+        mysql.connection.query(sql, {to_user: uid}, function(error, rows) {
             callback(error, rows)
         })
     },
@@ -53,7 +52,7 @@ module.exports = {
     setDownloadedByUuid: function(uuid, callback) {
         var sql = "UPDATE message SET downloaded=:downloaded WHERE uuid=:uuid"
         var params = {downloaded: true, uuid: uuid}
-        connection.query(sql, params, function(error, rows) {
+        mysql.connection.query(sql, params, function(error, rows) {
             callback();
         });
     }

@@ -12,6 +12,20 @@ function MessageManager() {
 
 }
 
+/**
+ *
+ * @param data = {
+                    from_user: user.uid,
+                    to_user: data.uid,
+                    type: data.type,
+                    text: data.text,
+                    uuid: data.uuid,
+                    jid: data.jid,
+                    cid: data.cid
+                };
+ * @param callback (err, message)
+ * @returns {*}
+ */
 MessageManager.prototype.parse = function (data, callback) {
     var msg = new Message();
     msg.setFromUser(data.from_user);
