@@ -24,21 +24,64 @@ router.post("/post/job", function(req, res, next) {
             uuid: uuid,
             jid: jid
         };
-        MessageManager.parse(msg, function (err, message) {
+        sendMessage(msg, function(err, message) {
             if (err) {
-                res.send({retCode: 0, content: err});
-                return;
+                res.send({retCode: 0, content: err})
             }
-            var sendMessage = message.getSendMessage();
-            UserManager.findSocksByUid(to).forEach(function (sock) {
-                sock.emit('message', sendMessage);
-            });
-            res.send({retCode: 1, content: uuid});
+            else {
+                res.send({retCode: 1, content: message.uuid});
+            }
         });
     }
     else {
         res.send({retCode: 0, content: '数据格式错误'});
     }
 });
+
+
+router.post("/post/resume", function(req, res, next) {
+    var from = parseInt(req.param('from'));
+    var to = parseInt(req.param('to'));
+    var uid = parseInt(req.param('uid'));
+    var text = req.param('text');
+    var uuid = req.param('uuid');
+
+    if (from && to && uid && uuid) {
+
+        var msg = {
+            from_user: from,
+            to_user: to,
+            type: Message.MessageType.Person,
+            text: text,
+            uuid: uuid,
+            cid: uid
+        };
+        sendMessage(msg, function(err, message) {
+            if (err) {
+                res.send({retCode: 0, content: err})
+            }
+            else {
+                res.send({retCode: 1, content: message.uuid});
+            }
+        });
+    }
+    else {
+        res.send({retCode: 0, content: '数据格式错误'});
+    }
+});
+
+function sendMessage(data, callback) {
+    MessageManager.parse(data, function (err, message) {
+        if (err) {
+            callback(err);
+            return;
+        }
+        var sendMessage = message.getSendMessage();
+        UserManager.findSocksByUid(data.to_user).forEach(function (sock) {
+            sock.emit('message', sendMessage);
+        });
+        callback(null, message)
+    });
+}
 
 module.exports = router;
