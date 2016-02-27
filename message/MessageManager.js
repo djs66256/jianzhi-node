@@ -73,10 +73,36 @@ MessageManager.prototype.parse = function (data, callback) {
             return callback('用户不存在');
         }
     }
-    else {
+    else if (data.type == Message.MessageType.Post) {
+        if (data.jid && msg.from_user) {
+            jobService.findById(data.jid, function(error, rows) {
+                if (error || rows.length == 0) {
+                    callback(error ? error : '工作不存在');
+                }
+                else {
+                    msg.setJob(rows[0]);
+                    userService.findByUid(msg.from_user, function (error, user) {
+                        if (error) {
+                            callback(error ? error : "用户不存在");
+                        }
+                        else {
+                            msg.setNameCard(user.getNameCard());
+                            messageService.insertMessage(msg, function (err) {
+                                callback(err, msg);
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    }
+    else if (data.type == Message.MessageType.Message) {
         messageService.insertMessage(msg, function(err) {
             callback(err, msg);
         });
+    }
+    else {
+        callback('unknow message type', null)
     }
 };
 
