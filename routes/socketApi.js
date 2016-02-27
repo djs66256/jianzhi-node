@@ -3,7 +3,8 @@
  */
 var express = require('express');
 var router = express.Router();
-var userManager = require('../message/UserManager');
+var UserManager = require('../message/UserManager');
+var Message = require('../core/Message/Message');
 
 router.get("/post/job", function(req, res, next) {
     var from = parseInt(req.query.from);
@@ -11,10 +12,15 @@ router.get("/post/job", function(req, res, next) {
     var jid = parseInt(req.query.jid);
     var text = req.query.text;
 
-    var sock = userManager.findSockByUid(to);
-    if (sock) {
+    var message = new Message();
+    message.setType(Message.MessageType.Job);
+    message.setFromUser(from);
+    message.setToUser(to);
+
+
+    UserManager.findSocksByUid(to).forEach(function (sock) {
         sock.emit('message')
-    }
+    });
 
     console.log(req)
 });

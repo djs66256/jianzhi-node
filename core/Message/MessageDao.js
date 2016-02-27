@@ -29,9 +29,7 @@ module.exports = {
         if (message.name_card) {
             params.name_card = message.name_card.id;
         }
-        connection.query(sql, params, function(err) {
-            cb(err)
-        })
+        connection.query(sql, params, cb)
     },
 
     findByFromUserAndToUserAndUuid: function(fromUser, toUser, uuid, cb) {

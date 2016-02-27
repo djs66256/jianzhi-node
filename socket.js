@@ -3,6 +3,7 @@
  */
 //var Message = require('./message/Message');
 var UserManager = require('./message/UserManager');
+var MessageManager = require('./message/MessageManager');
 
 var tokenService = require('./core/Token/TokenService');
 var messageService = require('./core/Message/MessageService');
@@ -68,60 +69,26 @@ module.exports = function(io) {
 			}
 			
 			if (data.uid) {
-                var msg = new Message();
-                msg.setFromUser(user.uid);
-                msg.setToUser(data.uid);
-                msg.setType(data.type);
-                msg.setText(data.text);
-                msg.setUuid(data.uuid);
-
-                if (msg.type == Message.MessageType.Job) {
-                    if (data.jid) {
-                        jobService.findById(data.jid, function(error, rows) {
-                            if (error || rows.length == 0) {
-                                sock.emit("messageError", msg.uuid)
-                            }
-                            else {
-                                msg.setJob(rows[0]);
-
-                                messageService.insertMessage(msg, function() {
-                                    sock.emit("messageAck", data.uuid);
-                                    sendMessage(msg);
-                                });
-                            }
-                        })
+                var msg = {
+                    from_user: user.uid,
+                    to_user: data.uid,
+                    type: data.type,
+                    text: data.text,
+                    uuid: data.uuid,
+                    jid: data.jid,
+                    cid: data.cid
+                };
+                MessageManager.parse(msg, function(err, message) {
+                    if (err) {
+                        sock.emit('messageError', msg.uuid)
                     }
                     else {
-                        return sock.emit("messageError", data.uuid)
+                        var sendMessage = message.getSendMessage();
+                        UserManager.findSocksByUid(message.to_user).forEach(function (sock) {
+                            sock.emit('message', sendMessage);
+                        });
                     }
-                }
-                else if (data.type == Message.MessageType.Person) {
-                    if (data.cid) {
-                        userService.findByUid(data.cid, function(error, user) {
-                            if (error) {
-                                sock.emit("messageError", data.uuid)
-                            }
-                            else {
-                                var nameCard = user.getNameCard();
-                                msg.setNameCard(nameCard);
-
-                                messageService.insertMessage(msg, function() {
-                                    sock.emit("messageAck", data.uuid);
-                                    sendMessage(msg);
-                                });
-                            }
-                        })
-                    }
-                    else {
-                        return sock.emit("messageError", data.uuid)
-                    }
-                }
-                else {
-                    messageService.insertMessage(msg, function() {
-                        sock.emit("messageAck", data.uuid);
-                        sendMessage(msg);
-                    });
-                }
+                });
 			}
             else {
                 sock.emit("messageError", data.uuid)
