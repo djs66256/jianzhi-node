@@ -39,7 +39,14 @@ module.exports = function(io) {
                             data.push(message)
                         });
                         if (data.length > 0) {
-                            sock.emit("message", data)
+                            sock.emit("message", data, function(ack) {
+                                if (ack == 'ok') {
+                                    data.forEach(function(row) {
+                                        messageService.setDownloadedByUuid(row.uuid, function () {
+                                        });
+                                    });
+                                }
+                            })
                         }
                     })
 				}
@@ -52,18 +59,10 @@ module.exports = function(io) {
 			sock.emit("needlogin", "need login");
 		}
 
-		// Listeners
-		//sock.on('login', function(data) {
-		//	if (data.token && data.uid) {
-		//		UserManager.login(data.token, data.uid, sock.id, function(){
-		//			console.log('login:'+data.uid);
-		//		});
-		//	}
-		//});
-		
-		sock.on('message', function(data) {
+		sock.on('message', function(data, ack) {
 			var user = UserManager.findBySockid(sock.id);
 			if (!user) {
+                if (ack) ack('error');
 				sock.emit('needlogin', {});
 				return;
 			}
@@ -80,36 +79,26 @@ module.exports = function(io) {
                 };
                 MessageManager.parse(msg, function(err, message) {
                     if (err) {
-                        sock.emit('messageError', msg.uuid)
+                        if (ack) ack('error');
                     }
                     else {
                         var sendMessage = message.getSendMessage();
                         UserManager.findSocksByUid(message.to_user).forEach(function (sock) {
-                            sock.emit('message', sendMessage);
+                            sock.emit('message', sendMessage, function (data) {
+                                if (data == 'ok') {
+                                    messageService.setDownloadedByUuid(message.uuid, function () {
+                                    });
+                                }
+                            })
                         });
+                        if (ack) ack('ok');
                     }
                 });
 			}
             else {
-                sock.emit("messageError", data.uuid)
+                if (ack) ack('error');
             }
 		});
-
-        sock.on('messageAck', function(data) {
-            // TODO: mark downloaded
-            if (data instanceof Array) {
-                data.forEach(function(uuid) {
-                    messageService.setDownloadedByUuid(uuid, function() {});
-                })
-            }
-            else if (typeof(data) == "string") {
-                if (data) {
-                    messageService.setDownloadedByUuid(data, function () {
-                    });
-                }
-            }
-
-        });
 
 		sock.on('logout', function(data) {
 			UserManager.logout(sock.id);
@@ -142,11 +131,4 @@ function tokenFromString(str) {
         return token;
     }
     return null;
-}
-
-function sendMessage(message) {
-    var sendMessage = message.getSendMessage();
-    UserManager.findSocksByUid(message.to_user).forEach(function (sock) {
-        sock.emit('message', sendMessage);
-    });
 }
