@@ -6,8 +6,15 @@ module.exports = {
         dao.insertMessage(message, cb)
     },
 
-    findUndownloadedByFromUser : function(uid, callback) {
-        dao.findUndownloadedByFromUser(uid, callback)
+    findUndownloadedByToUser : function(uid, callback) {
+        dao.findUndownloadedByToUser(uid, function (err, messages) {
+            if (err) {
+                callback(err, null);
+            }
+            else {
+                callback(null, messages);
+            }
+        })
     },
 
     setDownloadedByUuid: function(uuid, callback) {

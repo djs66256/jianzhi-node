@@ -53,11 +53,11 @@ Message.prototype.getSendMessage = function() {
         type: this.type,
         uuid: this.uuid
     };
-    if (this.type == Message.MessageType.Job) {
+    if (this.type == Message.MessageType.Job || this.type == Message.MessageType.Post) {
         ret.jid = this.job.id;
         ret.job = this.job;
     }
-    else if (this.type == Message.MessageType.Person) {
+    if (this.type == Message.MessageType.Person || this.type == Message.MessageType.Post) {
         ret.cid = this.name_card.id;
         ret.nameCard = this.name_card;
     }

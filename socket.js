@@ -7,9 +7,6 @@ var MessageManager = require('./message/MessageManager');
 
 var tokenService = require('./core/Token/TokenService');
 var messageService = require('./core/Message/MessageService');
-var jobService = require('./core/Job/JobService');
-var userService = require('./core/User/UserService');
-var Message = require('./core/Message/Message');
 
 module.exports = function(io) {
 	UserManager.io = io;
@@ -26,23 +23,16 @@ module.exports = function(io) {
                     });
 					sock.emit("login");
 
-                    messageService.findUndownloadedByFromUser(token.uid, function(error, rows) {
+                    messageService.findUndownloadedByToUser(token.uid, function(error, messages) {
                         var data = [];
-                        rows.forEach(function(row) {
-                            var message = {
-                                time: row.time.getTime(),
-                                uid: row.from_user,
-                                uuid: row.uuid,
-                                type: row.type,
-                                text: row.text
-                            };
-                            data.push(message)
+                        messages.forEach(function(message) {
+                            data.push(message.getSendMessage())
                         });
                         if (data.length > 0) {
                             sock.emit("message", data, function(ack) {
                                 if (ack == 'ok') {
-                                    data.forEach(function(row) {
-                                        messageService.setDownloadedByUuid(row.uuid, function () {
+                                    data.forEach(function(sendMessage) {
+                                        messageService.setDownloadedByUuid(sendMessage.uuid, function () {
                                         });
                                     });
                                 }
